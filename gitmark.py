@@ -15,6 +15,17 @@ import hashlib
 # -- Our own gitmarks settings
 import settings
 
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+handler = logging.FileHandler('hello.log')
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+consoleHandler = logging.StreamHandler()
+consoleHandler.setFormatter(formatter)
+logger.addHandler(consoleHandler)
+
 #our version of gitmarks
 GITMARK_VER_STRING = 'gitmark.0.2'
 
@@ -61,8 +72,9 @@ class gitMark(object):
 		
 		
 	def addTags(self, stringList):
+		logging.debug('adding tags='+stringList)
 		#if we have more than 1 quote, split by quotes
-		if(stringList.count('"') > 1):
+		if stringList.count('"') > 1:
 			logging.error('has qouted string! We fail')
 		else :
 			list = stringList.split(',')
@@ -103,7 +115,7 @@ class gitMark(object):
 	def parseTitle(self, content=None):
 		""" parses the tile from html content, sets it to 
 		our local title value, and returns the title to the caller"""
-		if(content == None):
+		if content == None:
 			content = self.content
 		self.title = self.cls_parseTitle(content)
 		return self.title
@@ -114,7 +126,7 @@ class gitMark(object):
 		content structure. IF we have a uri, gets contents from 
 		there instead of our local uri.
 		"""
-		if( uri == None):
+		if uri == None:
 			uri = self.uri
 		#FUTURE: do we want to allow a different URI to get passed in?			
 		self.content = self.cls_getContent(uri)
@@ -135,7 +147,7 @@ class gitMark(object):
 			self.getContent() 
 
 	def setTimeIfEmpty(self):
-		if self.time == None :
+		if self.time is None:
 			self.time = time.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 	def cacheContent(self, target_file, content=None):
@@ -144,8 +156,8 @@ class gitMark(object):
 		content is specified, then that content is written instead
 		of the content in this gitmark
 		"""
-		if content == None:
-			if self.content == None:
+		if content is None:
+			if self.content is None:
 				self.getContent()
 			content = self.content
 		# -- lazily git store any existing file if necessary
@@ -166,7 +178,7 @@ class gitMark(object):
 		exit(-5)
 		
 		logging.info("adding myself to the local repository")
-		if(self.private != False):
+		if self.private:
 			logging.info("this is a private mark. Encrypting not yet enabled. Do not store")
 		else :
 			# -- write gitmark
@@ -238,7 +250,7 @@ class gitMark(object):
 		Create and returns a gitmark object from files on the local filesystem. 
 		"""
 		f = open(filename,'r')
-		if(f):
+		if f:
 			jsonObj = f.read()
 			f.close()
 			del f
@@ -291,7 +303,7 @@ class gitMark(object):
 	
 	@classmethod
 	def cls_parseTitle(cls, content):
-		if content == None : return '[No Title]'
+		if content is None: return '[No Title]'
 		re_htmltitle = re.compile(".*<title>(.*)</title>.*")
 		try:
 			t = re_htmltitle.search(content)
@@ -302,6 +314,7 @@ class gitMark(object):
 		
 	@classmethod
 	def gitAdd(cls, files, forceDateTime=None, gitBaseDir=None):
+		logger.debug('git add')
 		""" add this git object's files to the local repository"""
 		# TRICKY:Set the authoring date of the commit based on the imported timestamp. git reads the GIT_AUTHOR_DATE environment var.
 		# TRICKTY: sets the environment over to the base directory of the gitmarks base
@@ -315,6 +328,7 @@ class gitMark(object):
 
 	@classmethod
 	def gitCommit(cls, msg, gitBaseDir = None):
+		logger.debug('git commit')
 		""" commit the local repository to the server"""
 		# TRICKTY: sets the environment over to the base directory of the gitmarks base
 		cwd_dir = os.path.abspath(os.getcwd())
@@ -324,6 +338,7 @@ class gitMark(object):
 
 	@classmethod
 	def gitPush(cls, gitBaseDir = None):
+		logger.debug('gitpush')
 		""" push the local origin to the master"""
 		# TRICKTY: sets the environment over to the base directory of the gitmarks base
 		cwd_dir = os.path.abspath(os.getcwd())
@@ -331,7 +346,8 @@ class gitMark(object):
 		logging.info( os.getcwd() ) 
 		pipe = subprocess.Popen("git push origin master", shell=True) #Tricky: shell must be true
 		pipe.wait()
-		if gitBaseDir: 	os.chdir(cwd_dir)
+		if gitBaseDir:
+			os.chdir(cwd_dir)
 
 class gitmarkRepoManager(object):
 

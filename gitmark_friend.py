@@ -26,7 +26,7 @@ class friend_scraper(object):
 	privateFriends = {}
 
 	def __init__(self):
-		print "creating a service scraper to look for friends updates"
+		print("creating a service scraper to look for friends updates")
 		fh = open(self.services_json)
 		if fh:
 			jsonObj = fh.read()
@@ -35,7 +35,7 @@ class friend_scraper(object):
 			self.services = json.loads(jsonObj)
 
 	def load_private_friends(self):
-		print "load private friends"
+		print("load private friends")
 		private_gitmarks_dir = os.path.join( settings.GITMARK_BASE_DIR, settings.PRIVATE_GITMARK_REPO_DIR)
 		private_friends_file = os.path.join(private_gitmarks_dir, FRIENDS_JSON)
 		
@@ -68,10 +68,10 @@ class friend_scraper(object):
 
 	def print_friends(self):
 		""" Debugging tool to print friend list. """
-		print "== public friends =="
-		print self.publicFriends
-		print "== private friends =="
-		print self.privateFriends
+		print("== public friends ==")
+		print(self.publicFriends)
+		print("== private friends ==")
+		print(self.privateFriends)
 
 	def load_friends(self):
 		self.load_private_friends()
@@ -85,9 +85,9 @@ class friend_sender_receiver(object):
 	"""
 
 if __name__ == "__main__":
-	print "goddammed! Do some friend stuff here"
-	print "THIS BETA CODE USING FILE NOT CREATED BY CONFIG"
-	
+	print("goddammed! Do some friend stuff here")
+	print("THIS BETA CODE USING FILE NOT CREATED BY CONFIG")
+
 	# -- load 'friend' file
 	scraper = friend_scraper()
 	scraper.load_friends()

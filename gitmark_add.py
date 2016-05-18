@@ -90,6 +90,9 @@ def updateToPublicRepo(gitmarksObj, doPush):
 
     # -- Check for tags differences
     oldMark = gitMark.cls_hydrate(filename)
+    # public_repo = os.path.join(settings.GITMARK_BASE_DIR, settings.PUBLIC_GITMARK_REPO_DIR,
+    #                         settings.BOOKMARK_SUB_PATH)
+    gitMark.gitPush(public_repo)
     # -- TODO add new tags
     # -- TODO remove old tags
     # -- TODO check for description differences
