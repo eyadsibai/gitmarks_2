@@ -9,17 +9,18 @@ Based on gitmarks by Hilary Mason on 2010-09-24.
 Copyright 2010 by Far McKon (intermediate while picking a opensource license)
 """
 
-import sys, os
-import urllib
-import subprocess
-import time
-from optparse import OptionParser
 import logging
+import os
+import subprocess
+import sys
+import time
+import urllib
+from optparse import OptionParser
+
 # -- Our own gitmarks settings
 import settings
 from gitmark import gitMark
 from gitmark import USE_SHELL
-
 
 def canHazWebs():
     """ Returns true/false if I can't ping google,
@@ -90,8 +91,7 @@ def updateToPublicRepo(gitmarksObj, doPush):
 
     # -- Check for tags differences
     oldMark = gitMark.cls_hydrate(filename)
-    # public_repo = os.path.join(settings.GITMARK_BASE_DIR, settings.PUBLIC_GITMARK_REPO_DIR,
-    #                         settings.BOOKMARK_SUB_PATH)
+    public_repo = os.path.join(settings.GITMARK_BASE_DIR, settings.PUBLIC_GITMARK_REPO_DIR)
     gitMark.gitPush(public_repo)
     # -- TODO add new tags
     # -- TODO remove old tags
@@ -102,6 +102,8 @@ def updateToPublicRepo(gitmarksObj, doPush):
 
 
 def updateToPrivateRepo(gitmarksObj, doPush):
+    private_repo = os.path.join(settings.GITMARK_BASE_DIR, settings.PRIVATE_GITMARK_REPO_DIR,
+                            settings.BOOKMARK_SUB_PATH)
     # TODO: set this a pep8 private function name
     logging.warning("no such thing to update private repo, encryption not yet installed")
     exit(-5)
@@ -192,7 +194,7 @@ def addToPublicRepo(gitmarksObj, doPush=True):
 
     # -- add to our public 'bookmarks'
     base_bookmark_dir = os.path.join(settings.GITMARK_BASE_DIR, settings.PUBLIC_GITMARK_REPO_DIR,
-                                settings.BOOKMARK_SUB_PATH)
+                                     settings.BOOKMARK_SUB_PATH)
     if not os.path.exists(base_bookmark_dir):
         os.makedirs(base_bookmark_dir)
     filename = os.path.join(settings.GITMARK_BASE_DIR, settings.PUBLIC_GITMARK_REPO_DIR,
@@ -221,7 +223,7 @@ def addToPublicRepo(gitmarksObj, doPush=True):
     tagFilesWrittenSuccess = []
     for tag in gitmarksObj.everyPossibleTagList():
         base_tag_dir = os.path.join(settings.GITMARK_BASE_DIR, settings.PUBLIC_GITMARK_REPO_DIR,
-                                settings.TAG_SUB_PATH)
+                                    settings.TAG_SUB_PATH)
         if not os.path.exists(base_tag_dir):
             os.makedirs(base_tag_dir)
         filename = os.path.join(settings.GITMARK_BASE_DIR, settings.PUBLIC_GITMARK_REPO_DIR,
@@ -246,7 +248,7 @@ def addToPublicRepo(gitmarksObj, doPush=True):
         # check if we have a cache directory
         c_dir = os.path.join(settings.GITMARK_BASE_DIR, settings.CONTENT_GITMARK_DIR,
                              settings.HTML_SUB_PATH)
-        if os.path.isdir(c_dir) == False:
+        if not os.path.isdir(c_dir):
             subprocess.call(['mkdir', '-p', c_dir], shell=USE_SHELL)
         gitmarksObj.cacheContent(filename)
 
@@ -263,7 +265,7 @@ def addToPublicRepo(gitmarksObj, doPush=True):
 def isInGitmarkPublicRepo(gitmarkObj):
     """ Checks if a gitmarks object is already in the public repository
 	by checking for it's' hash in our public bookmarks directory. """
-    if (gitmarkObj.hash == None):
+    if gitmarkObj.hash == None:
         return False
     filename = os.path.join(settings.GITMARK_BASE_DIR, settings.PUBLIC_GITMARK_REPO_DIR,
                             settings.BOOKMARK_SUB_PATH, gitmarkObj.hash)

@@ -2,18 +2,19 @@
 File contains the gitmarks object clas.
 """
 
-import sys, os
-import urllib, httplib
-import re
-import csv
-import subprocess
-import time
-import logging
-from optparse import OptionParser
-import json
 import hashlib
+import httplib
+import json
+import logging
+import os
+import re
+import sys
+import time
+import urllib
+
 # -- Our own gitmarks settings
 import settings
+import git
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -26,8 +27,7 @@ consoleHandler = logging.StreamHandler()
 consoleHandler.setFormatter(formatter)
 logger.addHandler(consoleHandler)
 
-#our version of gitmarks
-GITMARK_VER_STRING = 'gitmark.0.2'
+GITMARK_VER_STRING = 'gitmark.0.3'
 
 # Arguments are passed directly to git, not through the shell, to avoid the
 # need for shell escaping. On Windows, however, commands need to go through the
@@ -265,8 +265,6 @@ class gitMark(object):
 	
 	@classmethod
 	def cls_saveContent(cls, filename, content):
-		"""
-		"""
 		f = open(filename, 'w')
 		f.write(content)
 		f.close()
@@ -315,39 +313,36 @@ class gitMark(object):
 	@classmethod
 	def gitAdd(cls, files, forceDateTime=None, gitBaseDir=None):
 		logger.debug('git add')
-		""" add this git object's files to the local repository"""
-		# TRICKY:Set the authoring date of the commit based on the imported timestamp. git reads the GIT_AUTHOR_DATE environment var.
-		# TRICKTY: sets the environment over to the base directory of the gitmarks base
-		cwd_dir = os.path.abspath(os.getcwd())
-	
-		if gitBaseDir: os.chdir(os.path.abspath(gitBaseDir))
-		if forceDateTime :	os.environ['GIT_AUTHOR_DATE'] = forceDateTime
-		subprocess.call(['git', 'add'] + files, shell=USE_SHELL)
-		if forceDateTime : del os.environ['GIT_AUTHOR_DATE']
-		if gitBaseDir: 	os.chdir(cwd_dir)
+		cls.git_add(os.path.abspath(gitBaseDir), files)
 
 	@classmethod
-	def gitCommit(cls, msg, gitBaseDir = None):
+	def git_add(cls, repo_path, files):
+		repo = git.Repo(repo_path)
+		for file in files:
+			repo.git.add(file)
+
+	@classmethod
+	def git_commit(cls, repo_path, commit_message):
+		repo = git.Repo(repo_path)
+		repo.git.commit(m=commit_message)
+
+	@classmethod
+	def gitCommit(cls, msg, repo_path = None):
 		logger.debug('git commit')
-		""" commit the local repository to the server"""
-		# TRICKTY: sets the environment over to the base directory of the gitmarks base
-		cwd_dir = os.path.abspath(os.getcwd())
-		if gitBaseDir: os.chdir(os.path.abspath(gitBaseDir))
-		subprocess.call(['git', 'commit', '-m', msg], shell=USE_SHELL)
-		if gitBaseDir: 	os.chdir(cwd_dir)
+		cls.git_commit(os.path.abspath(repo_path), msg)
 
 	@classmethod
 	def gitPush(cls, gitBaseDir = None):
 		logger.debug('gitpush')
-		""" push the local origin to the master"""
-		# TRICKTY: sets the environment over to the base directory of the gitmarks base
-		cwd_dir = os.path.abspath(os.getcwd())
-		if gitBaseDir: os.chdir(os.path.abspath(gitBaseDir))
-		logging.info( os.getcwd() ) 
-		pipe = subprocess.Popen("git push origin master", shell=True) #Tricky: shell must be true
-		pipe.wait()
-		if gitBaseDir:
-			os.chdir(cwd_dir)
+		cls.git_push(os.path.abspath(gitBaseDir))
+
+	@classmethod
+	def git_push(cls, repo_path):
+		repo = git.Repo(repo_path)
+		try:
+			repo.git.push()
+		except:
+			logger.error('failed to push to remote')
 
 class gitmarkRepoManager(object):
 
