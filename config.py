@@ -27,17 +27,17 @@ USE_SHELL = os.name == 'nt'
 def main():
     """Main"""
 
-    print """
+    print("""
         Wecome to gitmarks configurator. This will setup a couple of local
         repositories for you to use as your gitmarks system.  Gitmarks will
         maintain 2-3 repositories.
          - 1 for public use (world+dog read)
          - 1 for friends use (with some encryption)
          - 1 (optional) for content. This can be non-repo, or nonexistant.
-    """
+    """)
 
     if not get_yes_or_no("Ready to start?"):
-        print "Goodbye! Share and Enjoy."
+        print("Goodbye! Share and Enjoy.")
         return 0
 
     return configure_gitmarks()
@@ -58,13 +58,13 @@ def configure_gitmarks():
 
     try:
         cont = get_yes_or_no("Setup up local environment from " + \
-                                        "above settings?")
-    except InputError, err:
-        print str(err)
+                             "above settings?")
+    except InputError as err:
+        print(str(err))
         return -1
 
     if not cont:
-        print "You must store settings in beta, can't continue without them."
+        print("You must store settings in beta, can't continue without them.")
         return -1
 
     # Store user settings in settings.py, use example_settings.py as starting
@@ -74,7 +74,7 @@ def configure_gitmarks():
 
     create_local_gitmarks_folders()
 
-    print "Setup complete."
+    print("Setup complete.")
     return 0
 
 
@@ -102,7 +102,7 @@ def setup_repo(remote_repo, base_dir, local_dir, subdirs):
     if (remote_repo != None):
         if not folder_is_git_repo(repo_dir):
             ret = clone_to_local(base_dir, repo_dir, remote_repo)
-            if(ret != 0):
+            if (ret != 0):
                 raise GitError("Remote public clone to local failed")
 
     # No remote public repo, make a dir and git-init it as needed
@@ -115,7 +115,7 @@ def setup_repo(remote_repo, base_dir, local_dir, subdirs):
 
         # Init the new git repo
         ret = init_git_repo(abs_repo_dir)
-        if(ret != 0):
+        if (ret != 0):
             raise GitError("Initializing '%s' failed" % (abs_repo_dir))
 
         # Create our sub-dirs
@@ -135,19 +135,19 @@ def create_local_gitmarks_folders():
     # Now we can load the settings we just created
     try:
         import settings
-    except ImportError, err:
-        print "Failed loading settings.py module"
+    except ImportError as err:
+        print("Failed loading settings.py module")
         raise err
 
     abs_base_dir = os.path.abspath(settings.GITMARK_BASE_DIR)
 
     # List of subdirectories to populate repos with
     subdirs = [settings.BOOKMARK_SUB_PATH, settings.TAG_SUB_PATH,
-                settings.MSG_SUB_PATH]
+               settings.MSG_SUB_PATH]
 
     # Create a base directory if we need to
     if not os.path.isdir(abs_base_dir):
-        print "Creating base directory, '%s', for gitmarks" % (abs_base_dir)
+        print("Creating base directory, '%s', for gitmarks" % (abs_base_dir))
         os.makedirs(abs_base_dir)
 
     # Setup the public repo locally
@@ -160,9 +160,9 @@ def create_local_gitmarks_folders():
 
     # Create our local content directory and repo, even if we never use it
     content_dir = os.path.join(settings.GITMARK_BASE_DIR,
-                                settings.CONTENT_GITMARK_DIR)
+                               settings.CONTENT_GITMARK_DIR)
     if not os.path.isdir(content_dir):
-        print "Creating content directory, '%s', for gitmarks" % (content_dir)
+        print("Creating content directory, '%s', for gitmarks" % (content_dir))
         os.makedirs(content_dir)
 
     init_git_repo(content_dir)
@@ -171,15 +171,15 @@ def create_local_gitmarks_folders():
 def clone_to_local(base_dir, folder_name, remote_git_repo):
     """Clones a repository at remote_git_repo to a local directory"""
 
-    print "Cloning repository '%s' to directory '%s'" % (remote_git_repo,
-                                                        folder_name)
+    print("Cloning repository '%s' to directory '%s'" % (remote_git_repo,
+                                                         folder_name))
 
-    #swizzle our process location so that we get added to the right repo
+    # swizzle our process location so that we get added to the right repo
     base_dir = os.path.abspath(base_dir)
     cwd_dir = os.path.abspath(os.getcwd())
     os.chdir(os.path.abspath(base_dir))
     ret = subprocess.call(['git', 'clone', remote_git_repo, folder_name],
-                            shell=USE_SHELL)
+                          shell=USE_SHELL)
     os.chdir(cwd_dir)
     return ret
 
@@ -204,7 +204,7 @@ def make_gitmark_subdirs(folder_name, subdirs_list):
         new_dir = os.path.join(folder_name, new_dir)
         new_dir = os.path.abspath(new_dir)
         os.makedirs(new_dir)
-        #TODO: appears git does not add empty dirs. If it did, we would add
+        # TODO: appears git does not add empty dirs. If it did, we would add
         #      that here
     return
 
@@ -219,41 +219,41 @@ def config_settings():
     """Returns dict of config settings set interactivly by user"""
 
     base_dir = get_string('What base directories do you want ' + \
-                    'for your repos?', example_settings.GITMARK_BASE_DIR)
+                          'for your repos?', example_settings.GITMARK_BASE_DIR)
 
     get_content = get_yes_or_no('Do you want to pull down ' + \
-                    'content of page when you download a bookmark?',
-                    example_settings.GET_CONTENT)
+                                'content of page when you download a bookmark?',
+                                example_settings.GET_CONTENT)
 
     content_cache_mb = get_int('Do you want to set a maximum MB ' + \
-                    'of content cache?',
-                    example_settings.CONTENT_CACHE_SIZE_MB)
+                               'of content cache?',
+                               example_settings.CONTENT_CACHE_SIZE_MB)
 
     remote_pub_repo = get_string('Specify remote git repository ' + \
-                        'for your public bookmarks',
-                        example_settings.REMOTE_PUBLIC_REPO)
+                                 'for your public bookmarks',
+                                 example_settings.REMOTE_PUBLIC_REPO)
 
     remote_private_repo = get_string('Specify remote git ' + \
-                        'repository for your private bookmarks?',
-                        example_settings.REMOTE_PRIVATE_REPO)
+                                     'repository for your private bookmarks?',
+                                     example_settings.REMOTE_PRIVATE_REPO)
 
     remote_content_repo = None
     content_as_reop = get_yes_or_no('Do you want your content ' + \
-                        'folder to be stored as a repository?',
-                        example_settings.CONTENT_AS_REPO)
+                                    'folder to be stored as a repository?',
+                                    example_settings.CONTENT_AS_REPO)
 
     if content_as_reop is True:
         remote_content_repo = get_string('What is git ' + \
-                                'repository for your content?',
-                                example_settings.REMOTE_CONTENT_REPO)
+                                         'repository for your content?',
+                                         example_settings.REMOTE_CONTENT_REPO)
 
-    print "-- User Info --"
+    print("-- User Info --")
     user_name = get_string("What username do you want to use?",
-                    example_settings.USER_NAME)
+                           example_settings.USER_NAME)
     user_email = get_string("What email do you want to use?",
-                    example_settings.USER_EMAIL)
+                            example_settings.USER_EMAIL)
     machine_name = get_string("What is the name of this computer?",
-                    example_settings.MACHINE_NAME)
+                              example_settings.MACHINE_NAME)
 
     return {'GITMARK_BASE_DIR': base_dir,
             'GET_CONTENT': get_content,
